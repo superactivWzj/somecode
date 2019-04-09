@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DealFile {
 
@@ -17,7 +19,7 @@ public class DealFile {
     private Integer threadNum;
     // 线程表
     private List<CountWordsThread> listCountWordsThreads = null;
-    private List<Thread> listThread = null;
+    //private List<Thread> listThread = null;
     // 文件分割大小
     private long splitSize;
     // 当前处理的文件位置
@@ -27,7 +29,7 @@ public class DealFile {
         this.file = file;
         this.threadNum = 3;
         this.listCountWordsThreads = new ArrayList<>();
-        this.listThread = new ArrayList<>();
+        //this.listThread = new ArrayList<>();
         this.splitSize = 1024;
         this.currentPos = 0;
     }
@@ -35,6 +37,8 @@ public class DealFile {
     public void doFile() {
 
         long length = file.length();
+
+        ExecutorService executorService = Executors.newCachedThreadPool();
 
         while (currentPos < length) {
 
@@ -85,27 +89,38 @@ public class DealFile {
                         currentPos += length - currentPos;
                     }
 
-                    Thread thread = new Thread(countWordsThread);
-                    System.out.println("thread do file:" + thread.getName());
-                    thread.start();
+                    //Thread thread = new Thread(countWordsThread);
+                    //System.out.println("thread do file:" + thread.getName());
+                    //thread.start();
+                    // this.listThread.add(thread);
                     this.listCountWordsThreads.add(countWordsThread);
-                    this.listThread.add(thread);
+                    executorService.execute(countWordsThread);
                 }
             }
 
-            // 判断Map线程是否全部结束
             while (true) {
                 boolean flag = true;
-                for (int i = 0; i < listThread.size(); i++) {
-                    if (listThread.get(i).getState() != Thread.State.TERMINATED) {
-                        flag = false;
-                        break;
-                    }
+                if (!executorService.isTerminated()) {
+                    flag = false;
+                    break;
                 }
                 if (flag) {
                     break;
                 }
             }
+            // 判断Map线程是否全部结束
+//            while (true) {
+//                boolean flag = true;
+//                for (int i = 0; i < listThread.size(); i++) {
+//                    if (listThread.get(i).getState() != Thread.State.TERMINATED) {
+//                        flag = false;
+//                        break;
+//                    }
+//                }
+//                if (flag) {
+//                    break;
+//                }
+//            }
         }
 
         // 开始Reduce
@@ -125,9 +140,8 @@ public class DealFile {
                     }
                 }
             }
-            for (int i = 0; i < listThread.size(); i++) {
-                listThread.get(i).interrupt();
-            }
+            //关闭线程池
+            executorService.shutdown();
 
             for (String key :
                     treeMap.keySet()) {

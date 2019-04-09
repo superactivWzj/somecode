@@ -11,19 +11,20 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CountWordsThread implements Runnable{
+public class CountWordsThread implements Runnable {
 
     private FileChannel fileChannel = null;
     private FileLock lock = null;
     private MappedByteBuffer mbBuf = null;
     private Map<String, Integer> hashMap = null;
 
-    public CountWordsThread(File file,long start,long size) {
+    public CountWordsThread(File file, long start, long size) {
 
         try {
-            fileChannel = new RandomAccessFile(file,"rw").getChannel();
-            lock = fileChannel.lock(start,size,false);
-            mbBuf = fileChannel.map(FileChannel.MapMode.READ_ONLY,start,size);
+            fileChannel = new RandomAccessFile(file, "rw").getChannel();
+
+            lock = fileChannel.lock(start, size, false);
+            mbBuf = fileChannel.map(FileChannel.MapMode.READ_ONLY, start, size);
             hashMap = new HashMap<>();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -41,10 +42,10 @@ public class CountWordsThread implements Runnable{
         for (String e :
                 strings) {
             if (e.equals("")) continue;
-            if (hashMap.get(e)==null){
-                hashMap.put(e,1);
-            }else {
-                hashMap.put(e,hashMap.get(e)+1);
+            if (hashMap.get(e) == null) {
+                hashMap.put(e, 1);
+            } else {
+                hashMap.put(e, hashMap.get(e) + 1);
             }
 
         }

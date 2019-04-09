@@ -1,7 +1,6 @@
 package com.wzj.wordCount;
 
 import java.io.File;
-import java.io.IOException;
 
 public class WordCount {
 
